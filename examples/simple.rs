@@ -310,7 +310,7 @@ fn interpret_input(
                 writeln!(
                     &mut io::stdout(),
                     "{}:\n  ether {}\n  input data  (new / total): {} / {} B\n  output data (new / total): {} / {} B",
-                    interface_name,
+                    interface_name.as_encoded_bytes().as_bstr(),
                     data.mac_address(),
                     data.received(),
                     data.total_received(),

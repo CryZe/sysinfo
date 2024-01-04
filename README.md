@@ -82,7 +82,7 @@ for disk in &disks {
 let networks = Networks::new_with_refreshed_list();
 println!("=> networks:");
 for (interface_name, data) in &networks {
-    println!("{interface_name}: {}/{} B", data.received(), data.transmitted());
+    println!("{interface_name:?}: {}/{} B", data.received(), data.transmitted());
 }
 
 // Components temperature:

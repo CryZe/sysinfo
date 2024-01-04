@@ -1946,7 +1946,7 @@ impl RefreshKind {
 ///
 /// let networks = Networks::new_with_refreshed_list();
 /// for (interface_name, network) in &networks {
-///     println!("[{interface_name}]: {network:?}");
+///     println!("[{interface_name:?}]: {network:?}");
 /// }
 /// ```
 pub struct Networks {
@@ -1954,8 +1954,8 @@ pub struct Networks {
 }
 
 impl<'a> IntoIterator for &'a Networks {
-    type Item = (&'a String, &'a NetworkData);
-    type IntoIter = std::collections::hash_map::Iter<'a, String, NetworkData>;
+    type Item = (&'a OsString, &'a NetworkData);
+    type IntoIter = std::collections::hash_map::Iter<'a, OsString, NetworkData>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
@@ -1979,7 +1979,7 @@ impl Networks {
     /// let mut networks = Networks::new();
     /// networks.refresh_list();
     /// for (interface_name, network) in &networks {
-    ///     println!("[{interface_name}]: {network:?}");
+    ///     println!("[{interface_name:?}]: {network:?}");
     /// }
     /// ```
     pub fn new() -> Self {
@@ -2016,7 +2016,7 @@ impl Networks {
     ///     println!("{network:?}");
     /// }
     /// ```
-    pub fn list(&self) -> &HashMap<String, NetworkData> {
+    pub fn list(&self) -> &HashMap<OsString, NetworkData> {
         self.inner.list()
     }
 
@@ -2054,7 +2054,7 @@ impl Networks {
 }
 
 impl std::ops::Deref for Networks {
-    type Target = HashMap<String, NetworkData>;
+    type Target = HashMap<OsString, NetworkData>;
 
     fn deref(&self) -> &Self::Target {
         self.list()
@@ -2068,7 +2068,7 @@ impl std::ops::Deref for Networks {
 ///
 /// let networks = Networks::new_with_refreshed_list();
 /// for (interface_name, network) in &networks {
-///     println!("[{interface_name}] {network:?}");
+///     println!("[{interface_name:?}] {network:?}");
 /// }
 /// ```
 pub struct NetworkData {
