@@ -23,15 +23,12 @@ pub(crate) fn get_now() -> u64 {
         .unwrap_or(0)
 }
 
-pub(crate) unsafe fn to_utf8_str(p: PWSTR) -> String {
+pub(crate) unsafe fn to_os_string(p: PWSTR) -> OsString {
     if p.is_null() {
-        return String::new();
+        return OsString::new();
     }
 
-    p.to_string().unwrap_or_else(|_e| {
-        sysinfo_debug!("Failed to convert to UTF-16 string: {}", _e);
-        String::new()
-    })
+    OsString::from_wide(p.as_wide())
 }
 
 fn utf16_str<S: AsRef<OsStr> + ?Sized>(text: &S) -> Vec<u16> {

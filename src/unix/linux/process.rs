@@ -15,8 +15,7 @@ use libc::{c_ulong, gid_t, kill, uid_t};
 
 use crate::sys::system::SystemInfo;
 use crate::sys::utils::{
-    get_all_data, get_all_data_from_file, get_all_utf8_data, realpath, FileCounter, PathHandler,
-    PathPush,
+    get_all_data, get_all_data_from_file, realpath, FileCounter, PathHandler, PathPush,
 };
 use crate::{
     DiskUsage, Gid, Pid, Process, ProcessRefreshKind, ProcessStatus, Signal, ThreadKind, Uid,
@@ -814,17 +813,21 @@ fn copy_from_file(entry: &Path) -> Vec<OsString> {
 
 // Fetch tuples of real and effective UID and GID.
 fn get_uid_and_gid(file_path: &Path) -> Option<((uid_t, uid_t), (gid_t, gid_t))> {
-    let status_data = get_all_utf8_data(file_path, 16_385).ok()?;
+    let status_data = get_all_data(file_path, 16_385).ok()?;
 
     // We're only interested in the lines starting with Uid: and Gid:
     // here. From these lines, we're looking at the first and second entries to get
     // the real u/gid.
 
-    let f = |h: &str, n: &str| -> (Option<uid_t>, Option<uid_t>) {
-        if h.starts_with(n) {
-            let mut ids = h.split_whitespace();
-            let real = ids.nth(1).unwrap_or("0").parse().ok();
-            let effective = ids.next().unwrap_or("0").parse().ok();
+    let f = |h: &[u8], n: &str| -> (Option<uid_t>, Option<uid_t>) {
+        if h.starts_with_str(n) {
+            let mut ids = h.fields();
+            let real = str::from_utf8(ids.nth(1).unwrap_or(b"0"))
+                .ok()
+                .and_then(|v| v.parse().ok());
+            let effective = str::from_utf8(ids.next().unwrap_or(b"0"))
+                .ok()
+                .and_then(|v| v.parse().ok());
 
             (real, effective)
         } else {

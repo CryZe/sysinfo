@@ -2608,7 +2608,7 @@ impl fmt::Display for DiskKind {
 ///
 /// let mut users = Users::new();
 /// for user in users.list() {
-///     println!("{} is in {} groups", user.name(), user.groups().len());
+///     println!("{:?} is in {} groups", user.name(), user.groups().len());
 /// }
 /// ```
 pub struct Users {
@@ -3095,10 +3095,10 @@ impl User {
     ///
     /// let users = Users::new_with_refreshed_list();
     /// for user in users.list() {
-    ///     println!("{}", user.name());
+    ///     println!("{:?}", user.name());
     /// }
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &OsStr {
         self.inner.name()
     }
 
@@ -3111,7 +3111,7 @@ impl User {
     ///
     /// let users = Users::new_with_refreshed_list();
     /// for user in users.list() {
-    ///     println!("{} is in {:?}", user.name(), user.groups());
+    ///     println!("{:?} is in {:?}", user.name(), user.groups());
     /// }
     /// ```
     pub fn groups(&self) -> Vec<Group> {
@@ -3143,7 +3143,7 @@ impl User {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Group {
     pub(crate) id: Gid,
-    pub(crate) name: String,
+    pub(crate) name: OsString,
 }
 
 impl Group {
@@ -3175,11 +3175,11 @@ impl Group {
     ///
     /// for user in users.list() {
     ///     for group in user.groups() {
-    ///         println!("{}", group.name());
+    ///         println!("{:?}", group.name());
     ///     }
     /// }
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &OsStr {
         &self.name
     }
 }

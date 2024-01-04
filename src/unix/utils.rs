@@ -7,8 +7,8 @@ use std::{
 
 use libc::c_char;
 
-pub(crate) unsafe fn cstr_to_utf8_str<'a>(c: *const c_char) -> Option<&'a str> {
-    cstr_to_os_str_with_size(c, None)?.to_str()
+pub(crate) unsafe fn cstr_to_os_str<'a>(c: *const c_char) -> Option<&'a OsStr> {
+    cstr_to_os_str_with_size(c, None)
 }
 
 pub(crate) unsafe fn cstr_to_os_str_with_size<'a>(

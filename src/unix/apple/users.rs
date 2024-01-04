@@ -48,7 +48,7 @@ pub(crate) fn get_users(users: &mut Vec<User>) {
                 // This is not a "real" or "local" user.
                 continue;
             }
-            if let Some(name) = crate::unix::utils::cstr_to_utf8_str((*pw).pw_name) {
+            if let Some(name) = crate::unix::utils::cstr_to_os_str((*pw).pw_name) {
                 if users_map.contains_key(name) {
                     continue;
                 }

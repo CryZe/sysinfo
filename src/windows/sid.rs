@@ -1,7 +1,10 @@
 // Take a look at the license at the top of the repository in the LICENSE file.
 
+use std::ffi::OsString;
+use std::os::windows::ffi::OsStringExt;
 use std::{fmt::Display, str::FromStr};
 
+use bstr::ByteSlice;
 use windows::core::{PCWSTR, PWSTR};
 use windows::Win32::Foundation::{LocalFree, ERROR_INSUFFICIENT_BUFFER, HLOCAL, PSID};
 use windows::Win32::Security::Authorization::{ConvertSidToStringSidW, ConvertStringSidToSidW};
@@ -9,7 +12,7 @@ use windows::Win32::Security::{
     CopySid, GetLengthSid, IsValidSid, LookupAccountSidW, SidTypeUnknown,
 };
 
-use crate::sys::utils::to_utf8_str;
+use crate::sys::utils::to_os_string;
 
 #[doc = include_str!("../../md_doc/sid.md")]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -56,13 +59,13 @@ impl Sid {
     }
 
     /// Retrieves the account name of this SID.
-    pub(crate) fn account_name(&self) -> Option<String> {
+    pub(crate) fn account_name(&self) -> Option<OsString> {
         unsafe {
             let mut name_len = 0;
             let mut domain_len = 0;
             let mut name_use = SidTypeUnknown;
 
-            let sid = PSID((self.sid.as_ptr() as *mut u8).cast());
+            let sid = PSID(self.sid.as_ptr().cast_mut().cast());
             if let Err(err) = LookupAccountSidW(
                 PCWSTR::null(),
                 sid,
@@ -102,29 +105,29 @@ impl Sid {
                 return None;
             }
 
-            Some(to_utf8_str(PWSTR::from_raw(name.as_mut_ptr())))
+            Some(OsString::from_wide(&name))
         }
     }
 }
 
 impl Display for Sid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        unsafe fn convert_sid_to_string_sid(sid: PSID) -> Option<String> {
+        unsafe fn convert_sid_to_string_sid(sid: PSID) -> Option<OsString> {
             let mut string_sid = PWSTR::null();
             if let Err(_err) = ConvertSidToStringSidW(sid, &mut string_sid) {
                 sysinfo_debug!("ConvertSidToStringSidW failed: {:?}", _err);
                 return None;
             }
-            let result = to_utf8_str(string_sid);
-            let _err = LocalFree(HLOCAL(string_sid.0 as _));
+            let result = to_os_string(string_sid);
+            let _err = LocalFree(HLOCAL(string_sid.0.cast()));
             Some(result)
         }
 
         let string_sid =
-            unsafe { convert_sid_to_string_sid(PSID((self.sid.as_ptr() as *mut u8).cast())) };
+            unsafe { convert_sid_to_string_sid(PSID(self.sid.as_ptr().cast_mut().cast())) };
         let string_sid = string_sid.ok_or(std::fmt::Error)?;
 
-        write!(f, "{string_sid}")
+        write!(f, "{}", string_sid.as_encoded_bytes().as_bstr())
     }
 }
 
