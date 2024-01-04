@@ -412,7 +412,7 @@ impl System {
     ///
     /// let s = System::new_all();
     /// for (pid, process) in s.processes() {
-    ///     println!("{} {}", pid, process.name());
+    ///     println!("{} {:?}", pid, process.name());
     /// }
     /// ```
     pub fn processes(&self) -> &HashMap<Pid, Process> {
@@ -426,7 +426,7 @@ impl System {
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!("{}", process.name());
+    ///     println!("{:?}", process.name());
     /// }
     /// ```
     pub fn process(&self, pid: Pid) -> Option<&Process> {
@@ -448,17 +448,18 @@ impl System {
     /// use sysinfo::System;
     ///
     /// let s = System::new_all();
-    /// for process in s.processes_by_name("htop") {
-    ///     println!("{} {}", process.pid(), process.name());
+    /// for process in s.processes_by_name("htop".as_ref()) {
+    ///     println!("{} {:?}", process.pid(), process.name());
     /// }
     /// ```
     pub fn processes_by_name<'a: 'b, 'b>(
         &'a self,
-        name: &'b str,
+        name: &'b OsStr,
     ) -> impl Iterator<Item = &'a Process> + 'b {
+        let finder = memchr::memmem::Finder::new(name.as_encoded_bytes());
         self.processes()
             .values()
-            .filter(move |val: &&Process| val.name().contains(name))
+            .filter(move |val: &&Process| finder.find(val.name().as_encoded_bytes()).is_some())
     }
 
     /// Returns an iterator of processes with exactly the given `name`.
@@ -476,13 +477,13 @@ impl System {
     /// use sysinfo::System;
     ///
     /// let s = System::new_all();
-    /// for process in s.processes_by_exact_name("htop") {
-    ///     println!("{} {}", process.pid(), process.name());
+    /// for process in s.processes_by_exact_name("htop".as_ref()) {
+    ///     println!("{} {:?}", process.pid(), process.name());
     /// }
     /// ```
     pub fn processes_by_exact_name<'a: 'b, 'b>(
         &'a self,
-        name: &'b str,
+        name: &'b OsStr,
     ) -> impl Iterator<Item = &'a Process> + 'b {
         self.processes()
             .values()
@@ -830,7 +831,7 @@ impl System {
 ///
 /// let s = System::new_all();
 /// if let Some(process) = s.process(Pid::from(1337)) {
-///     println!("{}", process.name());
+///     println!("{:?}", process.name());
 /// }
 /// ```
 pub struct Process {
@@ -898,10 +899,10 @@ impl Process {
     ///
     /// let s = System::new_all();
     /// if let Some(process) = s.process(Pid::from(1337)) {
-    ///     println!("{}", process.name());
+    ///     println!("{:?}", process.name());
     /// }
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &OsStr {
         self.inner.name()
     }
 
