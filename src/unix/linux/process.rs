@@ -10,15 +10,16 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::{fmt, str};
 
+use bstr::ByteSlice;
 use libc::{c_ulong, gid_t, kill, uid_t};
 
 use crate::sys::system::SystemInfo;
-use crate::sys::utils::{get_all_data_from_file, realpath, FileCounter, PathHandler, PathPush};
+use crate::sys::utils::{
+    get_all_data_from_file, get_all_utf8_data, realpath, FileCounter, PathHandler, PathPush,
+};
 use crate::{
     DiskUsage, Gid, Pid, Process, ProcessRefreshKind, ProcessStatus, Signal, ThreadKind, Uid,
 };
-
-use super::utils::get_all_utf8_data;
 
 #[doc(hidden)]
 impl From<char> for ProcessStatus {
@@ -93,11 +94,11 @@ const PF_KTHREAD: c_ulong = 0x00200000;
 
 pub(crate) struct ProcessInner {
     pub(crate) name: OsString,
-    pub(crate) cmd: Vec<String>,
+    pub(crate) cmd: Vec<OsString>,
     pub(crate) exe: Option<PathBuf>,
     pub(crate) pid: Pid,
     parent: Option<Pid>,
-    pub(crate) environ: Vec<String>,
+    pub(crate) environ: Vec<OsString>,
     pub(crate) cwd: Option<PathBuf>,
     pub(crate) root: Option<PathBuf>,
     pub(crate) memory: u64,
@@ -173,7 +174,7 @@ impl ProcessInner {
         &self.name
     }
 
-    pub(crate) fn cmd(&self) -> &[String] {
+    pub(crate) fn cmd(&self) -> &[OsString] {
         &self.cmd
     }
 
@@ -185,7 +186,7 @@ impl ProcessInner {
         self.pid
     }
 
-    pub(crate) fn environ(&self) -> &[String] {
+    pub(crate) fn environ(&self) -> &[OsString] {
         &self.environ
     }
 
@@ -665,7 +666,7 @@ fn get_all_pid_entries(
     if !entry.is_dir() {
         return None;
     }
-    let pid = Pid::from(usize::from_str(&name.to_string_lossy()).ok()?);
+    let pid = Pid::from(usize::from_str(name.to_str()?).ok()?);
 
     let tasks_dir = Path::join(&entry, "task");
     let tasks = if tasks_dir.is_dir() {
@@ -782,7 +783,7 @@ pub(crate) fn refresh_procs(
     true
 }
 
-fn copy_from_file(entry: &Path) -> Vec<String> {
+fn copy_from_file(entry: &Path) -> Vec<OsString> {
     match File::open(entry) {
         Ok(mut f) => {
             let mut data = Vec::with_capacity(16_384);
@@ -794,9 +795,9 @@ fn copy_from_file(entry: &Path) -> Vec<String> {
                 let mut out = Vec::with_capacity(10);
                 let mut data = data.as_slice();
                 while let Some(pos) = data.iter().position(|c| *c == 0) {
-                    match std::str::from_utf8(&data[..pos]).map(|s| s.trim()) {
-                        Ok(s) if !s.is_empty() => out.push(s.to_string()),
-                        _ => {}
+                    let s = &data[..pos].trim();
+                    if !s.is_empty() {
+                        out.push(OsStr::from_bytes(s).to_os_string());
                     }
                     data = &data[pos + 1..];
                 }
