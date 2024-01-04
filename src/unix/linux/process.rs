@@ -15,7 +15,8 @@ use libc::{c_ulong, gid_t, kill, uid_t};
 
 use crate::sys::system::SystemInfo;
 use crate::sys::utils::{
-    get_all_data_from_file, get_all_utf8_data, realpath, FileCounter, PathHandler, PathPush,
+    get_all_data, get_all_data_from_file, get_all_utf8_data, realpath, FileCounter, PathHandler,
+    PathPush,
 };
 use crate::{
     DiskUsage, Gid, Pid, Process, ProcessRefreshKind, ProcessStatus, Signal, ThreadKind, Uid,
@@ -311,26 +312,26 @@ pub(crate) fn set_time(p: &mut ProcessInner, utime: u64, stime: u64) {
 }
 
 pub(crate) fn update_process_disk_activity(p: &mut ProcessInner, path: &mut PathHandler) {
-    let data = match get_all_utf8_data(path.join("io"), 16_384) {
+    let data = match get_all_data(path.join("io"), 16_384) {
         Ok(d) => d,
         Err(_) => return,
     };
     let mut done = 0;
-    for line in data.split('\n') {
-        let mut parts = line.split(": ");
+    for line in data.split(|&b| b == b'\n') {
+        let mut parts = line.split_str(": ");
         match parts.next() {
-            Some("read_bytes") => {
+            Some(b"read_bytes") => {
                 p.old_read_bytes = p.read_bytes;
                 p.read_bytes = parts
                     .next()
-                    .and_then(|x| x.parse::<u64>().ok())
+                    .and_then(|x| str::from_utf8(x).ok()?.parse::<u64>().ok())
                     .unwrap_or(p.old_read_bytes);
             }
-            Some("write_bytes") => {
+            Some(b"write_bytes") => {
                 p.old_written_bytes = p.written_bytes;
                 p.written_bytes = parts
                     .next()
-                    .and_then(|x| x.parse::<u64>().ok())
+                    .and_then(|x| str::from_utf8(x).ok()?.parse::<u64>().ok())
                     .unwrap_or(p.old_written_bytes);
             }
             _ => continue,

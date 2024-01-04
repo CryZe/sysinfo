@@ -75,7 +75,7 @@ pub(crate) unsafe fn get_group_name(
         break;
     }
     let g = g.assume_init();
-    super::utils::cstr_to_rust(g.gr_name)
+    super::utils::cstr_to_utf8_str(g.gr_name).map(ToOwned::to_owned)
 }
 
 pub(crate) unsafe fn get_user_groups(

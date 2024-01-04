@@ -48,14 +48,14 @@ pub(crate) fn get_users(users: &mut Vec<User>) {
                 // This is not a "real" or "local" user.
                 continue;
             }
-            if let Some(name) = crate::unix::utils::cstr_to_rust((*pw).pw_name) {
-                if users_map.contains_key(&name) {
+            if let Some(name) = crate::unix::utils::cstr_to_utf8_str((*pw).pw_name) {
+                if users_map.contains_key(name) {
                     continue;
                 }
 
                 let uid = (*pw).pw_uid;
                 let gid = (*pw).pw_gid;
-                users_map.insert(name, (Uid(uid), Gid(gid)));
+                users_map.insert(name.to_owned(), (Uid(uid), Gid(gid)));
             }
         }
         endpwent();

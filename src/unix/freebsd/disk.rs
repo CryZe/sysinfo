@@ -6,7 +6,7 @@ use std::ffi::{OsStr, OsString};
 use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
 
-use super::utils::c_buf_to_utf8_str;
+use super::utils::c_buf_to_os_str;
 
 pub(crate) struct DiskInner {
     name: OsString,
@@ -134,13 +134,7 @@ pub unsafe fn get_all_list(container: &mut Vec<Disk>) {
             continue;
         }
 
-        let mount_point = match c_buf_to_utf8_str(&fs_info.f_mntonname) {
-            Some(m) => m,
-            None => {
-                sysinfo_debug!("Cannot get disk mount point, ignoring it.");
-                continue;
-            }
-        };
+        let mount_point = c_buf_to_os_str(&fs_info.f_mntonname);
 
         let name = if mount_point == "/" {
             OsString::from("root")
