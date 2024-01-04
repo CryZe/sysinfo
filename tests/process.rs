@@ -179,9 +179,7 @@ fn test_process_refresh() {
 
 #[test]
 fn test_process_disk_usage() {
-    use std::fs;
-    use std::fs::File;
-    use std::io::prelude::*;
+    use std::{fs, fs::File, io::prelude::*};
     use sysinfo::get_current_pid;
 
     if !sysinfo::IS_SUPPORTED_SYSTEM || cfg!(feature = "apple-sandbox") {

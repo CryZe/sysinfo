@@ -524,7 +524,7 @@ pub extern "C" fn sysinfo_cpu_vendor_id(system: CSystem) -> RString {
         let c_string = if let Some(c) = system
             .cpus()
             .first()
-            .and_then(|cpu| CString::new(cpu.vendor_id()).ok())
+            .and_then(|cpu| CString::new(cpu.vendor_id().as_encoded_bytes()).ok())
         {
             c.into_raw() as RString
         } else {
@@ -544,7 +544,7 @@ pub extern "C" fn sysinfo_cpu_brand(system: CSystem) -> RString {
         let c_string = if let Some(c) = system
             .cpus()
             .first()
-            .and_then(|cpu| CString::new(cpu.brand()).ok())
+            .and_then(|cpu| CString::new(cpu.brand().as_encoded_bytes()).ok())
         {
             c.into_raw() as RString
         } else {

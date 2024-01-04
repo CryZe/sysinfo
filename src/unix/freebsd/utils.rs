@@ -110,21 +110,20 @@ pub(crate) unsafe fn get_sys_value_array<T: Sized>(mib: &[c_int], value: &mut [T
     ) == 0
 }
 
-pub(crate) fn c_buf_to_utf8_str(buf: &[libc::c_char]) -> Option<&str> {
+pub(crate) fn c_buf_to_str(buf: &[libc::c_char]) -> &OsStr {
     unsafe {
         let buf: &[u8] = std::slice::from_raw_parts(buf.as_ptr() as _, buf.len());
-        std::str::from_utf8(if let Some(pos) = buf.iter().position(|x| *x == 0) {
+        if let Some(pos) = buf.iter().position(|x| *x == 0) {
             // Shrink buffer to terminate the null bytes
-            &buf[..pos]
+            OsStr::from_bytes(&buf[..pos])
         } else {
-            buf
-        })
-        .ok()
+            OsStr::from_bytes(buf)
+        }
     }
 }
 
-pub(crate) fn c_buf_to_utf8_string(buf: &[libc::c_char]) -> Option<String> {
-    c_buf_to_utf8_str(buf).map(|s| s.to_owned())
+pub(crate) fn c_buf_to_string(buf: &[libc::c_char]) -> OsString {
+    c_buf_to_str(buf).to_owned()
 }
 
 pub(crate) fn c_buf_to_os_str(buf: &[libc::c_char]) -> &OsStr {
@@ -178,7 +177,7 @@ pub(crate) unsafe fn get_sys_value_by_name<T: Sized>(name: &[u8], value: &mut T)
         && original == len
 }
 
-pub(crate) fn get_sys_value_str_by_name(name: &[u8]) -> Option<String> {
+pub(crate) fn get_sys_value_str_by_name(name: &[u8]) -> Option<OsString> {
     let mut size = 0;
 
     unsafe {
@@ -203,7 +202,7 @@ pub(crate) fn get_sys_value_str_by_name(name: &[u8]) -> Option<String> {
             ) == 0
                 && size > 0
             {
-                c_buf_to_utf8_string(&buf)
+                Some(c_buf_to_string(&buf))
             } else {
                 // getting the system value failed
                 None

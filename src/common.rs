@@ -3759,10 +3759,10 @@ impl Cpu {
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!("{}", cpu.name());
+    ///     println!("{:?}", cpu.name());
     /// }
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &OsStr {
         self.inner.name()
     }
 
@@ -3775,10 +3775,10 @@ impl Cpu {
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!("{}", cpu.vendor_id());
+    ///     println!("{:?}", cpu.vendor_id());
     /// }
     /// ```
-    pub fn vendor_id(&self) -> &str {
+    pub fn vendor_id(&self) -> &OsStr {
         self.inner.vendor_id()
     }
 
@@ -3791,10 +3791,10 @@ impl Cpu {
     ///     RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
     /// );
     /// for cpu in s.cpus() {
-    ///     println!("{}", cpu.brand());
+    ///     println!("{:?}", cpu.brand());
     /// }
     /// ```
-    pub fn brand(&self) -> &str {
+    pub fn brand(&self) -> &OsStr {
         self.inner.brand()
     }
 

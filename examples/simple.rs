@@ -253,7 +253,7 @@ fn interpret_input(
                 writeln!(
                     &mut io::stdout(),
                     "[{}] {} MHz",
-                    cpu.name(),
+                    cpu.name().as_encoded_bytes().as_bstr(),
                     cpu.frequency(),
                 );
             }
@@ -262,11 +262,15 @@ fn interpret_input(
             writeln!(
                 &mut io::stdout(),
                 "vendor ID: {}",
-                sys.cpus()[0].vendor_id()
+                sys.cpus()[0].vendor_id().as_encoded_bytes().as_bstr()
             );
         }
         "brand" => {
-            writeln!(&mut io::stdout(), "brand: {}", sys.cpus()[0].brand());
+            writeln!(
+                &mut io::stdout(),
+                "brand: {}",
+                sys.cpus()[0].brand().as_encoded_bytes().as_bstr()
+            );
         }
         "load_avg" => {
             let load_avg = System::load_average();
