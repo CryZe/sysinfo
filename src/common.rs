@@ -3594,7 +3594,7 @@ impl Components {
 ///
 /// let components = Components::new_with_refreshed_list();
 /// for component in &components {
-///     println!("{} {}°C", component.label(), component.temperature());
+///     println!("{:?} {}°C", component.label(), component.temperature());
 /// }
 /// ```
 pub struct Component {
@@ -3680,10 +3680,10 @@ impl Component {
     ///
     /// let components = Components::new_with_refreshed_list();
     /// for component in &components {
-    ///     println!("{}", component.label());
+    ///     println!("{:?}", component.label());
     /// }
     /// ```
-    pub fn label(&self) -> &str {
+    pub fn label(&self) -> &OsStr {
         self.inner.label()
     }
 

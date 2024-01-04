@@ -1,5 +1,7 @@
 // Take a look at the license at the top of the repository in the LICENSE file.
 
+use bstr::ByteSlice;
+
 use crate::{
     Component, Components, Cpu, Disk, Disks, NetworkData, Networks, Process, System, User, Users,
 };
@@ -83,7 +85,7 @@ impl fmt::Debug for Component {
             write!(
                 f,
                 "{}: {}°C (max: {}°C / critical: {}°C)",
-                self.label(),
+                self.label().as_encoded_bytes().as_bstr(),
                 self.temperature(),
                 self.max(),
                 critical
@@ -92,7 +94,7 @@ impl fmt::Debug for Component {
             write!(
                 f,
                 "{}: {}°C (max: {}°C)",
-                self.label(),
+                self.label().as_encoded_bytes().as_bstr(),
                 self.temperature(),
                 self.max()
             )
